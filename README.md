@@ -136,3 +136,4 @@ End-to-end checklist:
 - Dữ liệu phụ thuộc HTML/metadata public của website; nếu markup đổi, cần chỉnh parser trong `lib/crawl/phuclong.ts`.
 - Chatbot không biết tồn kho/khuyến mãi/giá mới nhất nếu dữ liệu crawl không có thông tin đó.
 - Đây là bản khởi đầu để bạn mở rộng thêm feedback workflow, dashboard review phản hồi, hoặc admin re-crawl theo lịch.
+# LLM-Retrival-Product
