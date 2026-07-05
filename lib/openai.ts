@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { observeOpenAI } from "@langfuse/openai";
 
 export const chatModel = process.env.OPENAI_CHAT_MODEL ?? "gpt-4.1-mini";
 export const embeddingModel = process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-small";
@@ -8,7 +9,13 @@ export function getOpenAI() {
     throw new Error("Missing OPENAI_API_KEY");
   }
 
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return observeOpenAI(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }), {
+    traceName: "phuclong-rag",
+    tags: ["phuclong-parts", "rag"],
+    generationMetadata: {
+      app: "phuclong-rag-chatbot",
+    },
+  });
 }
 
 export async function embedText(input: string) {

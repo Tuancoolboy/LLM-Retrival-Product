@@ -1,11 +1,11 @@
-# Phúc Long RAG Chatbot
+# Phúc Long Parts RAG Chatbot
 
-Next.js chatbot tiếng Việt dùng OpenAI + Supabase pgvector để truy xuất dữ liệu sản phẩm công khai từ `https://phuclong.com/`.
+Next.js chatbot tiếng Việt dùng OpenAI + Supabase pgvector để truy xuất dữ liệu phụ tùng/cơ khí công khai từ `https://phuclong.com/`.
 
 ## Tính năng
 
-- Crawl dữ liệu sản phẩm từ các trang công khai của Phúc Long.
-- Chuẩn hóa sản phẩm thành JSON.
+- Crawl dữ liệu phụ tùng từ các trang sản phẩm/collections công khai của Phúc Long.
+- Chuẩn hóa sản phẩm phụ tùng thành JSON.
 - Tạo embeddings bằng OpenAI `text-embedding-3-small`.
 - Lưu sản phẩm/chunks vào Supabase Postgres + pgvector.
 - Hybrid search: vector similarity + full-text keyword rank + boost theo tên/danh mục.
@@ -44,17 +44,37 @@ CRAWL_DELAY_MS=800
 
 ## Crawl dữ liệu công khai
 
+Mặc định crawler dùng domain phụ tùng/cơ khí `https://phuclong.com/` và collection tất cả sản phẩm. Nếu website đổi path, cập nhật lại `CRAWL_COLLECTION_PATH` tới trang danh mục công khai mà bạn được phép crawl.
+
+### Cách crawl
+
+1. Cập nhật `.env.local`:
+
+```env
+CRAWL_BASE_URL=https://phuclong.com
+# Đổi path này thành trang products/collections phụ tùng thực tế nếu website có path khác.
+CRAWL_COLLECTION_PATH=/collections/tat-ca-san-pham
+CRAWL_COLLECTION_START_PAGE=1
+CRAWL_COLLECTION_END_PAGE=20
+CRAWL_MAX_PAGES=200
+CRAWL_DELAY_MS=800
+```
+
+2. Chạy crawler:
+
 ```bash
 npm run crawl
 ```
 
-Output được lưu tại:
+3. Kiểm tra output:
 
 ```text
 data/phuclong-products.json
 ```
 
-Crawler chỉ truy cập trang public cùng host, bỏ qua các URL đăng nhập, giỏ hàng, checkout, account/admin và có delay giữa requests.
+4. Nếu JSON rỗng hoặc thiếu sản phẩm, hãy mở website, copy đúng link danh mục/sản phẩm public, rồi đặt lại `CRAWL_BASE_URL`/`CRAWL_COLLECTION_PATH` trước khi ingest.
+
+Crawler chỉ truy cập trang public cùng host, ưu tiên link collections/products, bỏ qua URL đăng nhập, giỏ hàng, checkout, account/admin/news và có delay giữa requests.
 
 ## Ingest vào Supabase
 
@@ -78,9 +98,9 @@ npm run dev
 
 Mở `http://localhost:3000` và thử:
 
-- `Gợi ý sản phẩm trà trái cây dễ uống?`
-- `Sản phẩm nào phù hợp nếu tôi thích cà phê?`
-- `Tôi muốn phản hồi về món Trà Đào, chatbot nên hỏi gì tiếp?`
+- `Tôi cần bộ xích cho D9R, có sản phẩm nào liên quan?`
+- `Bơm thủy lực K3V63DT có thông tin gì?`
+- `Có phụ tùng gầm máy nào cho D155A-1?`
 
 ## API
 
@@ -90,7 +110,7 @@ Body:
 
 ```json
 {
-  "message": "Gợi ý trà trái cây dễ uống?",
+  "message": "Tôi cần bộ xích cho D9R, có sản phẩm nào liên quan?",
   "history": []
 }
 ```
@@ -128,7 +148,7 @@ End-to-end checklist:
 
 1. `npm run crawl` tạo được JSON có sản phẩm.
 2. `npm run ingest` ghi rows vào Supabase.
-3. `/api/search?q=tra dao` trả về chunks liên quan.
+3. `/api/search?q=bo xich D9R` trả về chunks liên quan.
 4. UI chat trả lời có nguồn và không bịa dữ liệu khi context thiếu.
 
 ## Lưu ý

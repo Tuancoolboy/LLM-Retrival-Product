@@ -5,4 +5,6 @@ node_modules
 .env.*.local
 .DS_Store
 data/phuclong-products.json
+supabase/.temp/
+ui-ux-pro-max-skill-main/
 *.tsbuildinfo

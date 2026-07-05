@@ -3,6 +3,9 @@ import path from "node:path";
 import { embedTexts } from "../lib/openai";
 import { getSupabaseAdmin } from "../lib/supabase/server";
 import type { ProductRecord } from "../lib/crawl/phuclong";
+import { loadEnvLocal } from "./load-env";
+
+loadEnvLocal();
 
 type CrawlFile = {
   crawledPages: number;

@@ -12,7 +12,7 @@ const config: Config = {
           600: "#0a6430",
           700: "#084f28",
         },
-        tea: "#f6f1e7",
+        workshop: "#f6f1e7",
       },
       boxShadow: {
         soft: "0 20px 60px rgba(8, 79, 40, 0.12)",
