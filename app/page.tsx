@@ -141,7 +141,21 @@ export default function Home() {
       });
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error ?? "Không gọi được API chat");
+      if (!response.ok) {
+        const message = data.answer ?? data.error ?? "Không gọi được API chat";
+        setError(data.error && !data.answer ? data.error : null);
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: message,
+            createdAt: formatTime(),
+            sources: data.sources ?? [],
+          },
+        ]);
+        return;
+      }
 
       setMessages((current) => [
         ...current,

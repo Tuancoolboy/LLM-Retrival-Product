@@ -10,6 +10,7 @@ Next.js chatbot tiếng Việt dùng OpenAI + Supabase pgvector để truy xuấ
 - Lưu sản phẩm/chunks vào Supabase Postgres + pgvector.
 - Hybrid search: vector similarity + full-text keyword rank + boost theo tên/danh mục.
 - API chat RAG trả lời tiếng Việt có nguồn tham khảo.
+- Guardrails chống hỏi ngoài phạm vi/prompt injection và giới hạn 10 prompt/ngày theo IP.
 - UI chat responsive bằng Next.js App Router + Tailwind CSS.
 
 ## Cài đặt
@@ -26,11 +27,20 @@ cp .env.example .env.local
 OPENAI_API_KEY=sk-...
 OPENAI_CHAT_MODEL=gpt-4.1-mini
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+LANGFUSE_PUBLIC_KEY=
+LANGFUSE_SECRET_KEY=
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+DAILY_CHAT_PROMPT_LIMIT=10
+RATE_LIMIT_TIME_ZONE=Asia/Ho_Chi_Minh
+RATE_LIMIT_SALT=
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 CRAWL_BASE_URL=https://phuclong.com
-CRAWL_MAX_PAGES=120
+CRAWL_COLLECTION_PATH=/collections/tat-ca-san-pham
+CRAWL_COLLECTION_START_PAGE=1
+CRAWL_COLLECTION_END_PAGE=212
+CRAWL_MAX_PAGES=1200
 CRAWL_DELAY_MS=800
 ```
 
@@ -40,7 +50,21 @@ CRAWL_DELAY_MS=800
 
 1. Mở Supabase SQL Editor.
 2. Chạy toàn bộ file `supabase/schema.sql`.
-3. Kiểm tra đã có bảng `products`, `product_chunks` và function `hybrid_search_product_chunks`.
+3. Kiểm tra đã có bảng `products`, `product_chunks`, `daily_prompt_limits` và function `hybrid_search_product_chunks`, `consume_daily_prompt_quota`.
+
+## Rate limit prompt
+
+`POST /api/chat` mặc định cho mỗi IP hỏi tối đa `10` lần/ngày, reset theo múi giờ `Asia/Ho_Chi_Minh`.
+
+Có thể đổi bằng env:
+
+```env
+DAILY_CHAT_PROMPT_LIMIT=10
+RATE_LIMIT_TIME_ZONE=Asia/Ho_Chi_Minh
+RATE_LIMIT_SALT=
+```
+
+`RATE_LIMIT_SALT` dùng để hash IP trước khi lưu vào Supabase. Nếu không set, app dùng server secret hiện có để hash.
 
 ## Crawl dữ liệu công khai
 
@@ -120,6 +144,13 @@ Response:
 ```json
 {
   "answer": "...",
+  "rateLimit": {
+    "allowed": true,
+    "usedCount": 1,
+    "remaining": 9,
+    "limit": 10,
+    "resetAt": "..."
+  },
   "sources": [
     {
       "productName": "...",
